@@ -1,0 +1,3 @@
+import Link from 'next/link';import AuthForm from '../auth-form';
+export const metadata={title:'Create an account | Veritas Autos'};
+export default async function RegisterPage({searchParams}){const params=await searchParams;return <div className="page-shell"><header className="simple-header"><Link href="/" className="brand"><img src="/assets/veritas-autos-logo.png" alt=""/><span>VERITAS <b>AUTOS</b><small>THE SPARE PARTS HUB</small></span></Link><Link className="text-link" href="/">← Back to marketplace</Link></header><main className="simple-main"><AuthForm mode="register" initialRole={params?.role||'CUSTOMER'}/></main></div>}
