@@ -27,9 +27,9 @@ A Vercel-ready Next.js marketplace foundation for Veritas Autos. It includes the
 2. Create a new private GitHub repository, for example `veritas-autos-marketplace`.
 3. Upload the **contents** of the extracted project folder to the repository root. `package.json` and `prisma/` must be at the root, not inside another nested project folder.
 4. In Vercel, choose **Add New → Project**, import the GitHub repository, and keep the framework preset as Next.js.
-5. Create a production MySQL database that is reachable from Vercel. Add its connection string as `DATABASE_URL` in Vercel Project Settings → Environment Variables. Use a managed MySQL service during the Vercel phase. Do not use a local database file.
+5. The project explicitly approves the required Prisma and esbuild install scripts in `package.json`, so npm can run the package setup scripts during deployment. Create a production MySQL database that is reachable from Vercel. Add its connection string as `DATABASE_URL` in Vercel Project Settings → Environment Variables. Use a managed MySQL service during the Vercel phase. Do not use a local database file.
 6. Add `AUTH_SECRET` as a long random secret, `APP_URL` as the deployed HTTPS URL, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DEFAULT_COMMISSION_PERCENT` and `MIN_WITHDRAWAL_NGN`.
-7. Deploy once to build the application. Then run the database schema and seed commands from a local terminal with the same production `DATABASE_URL` in a protected local `.env` file:
+7. Deploy once to build the application. The install step generates Prisma Client automatically. The database schema and admin seed still need to be initialized once using a secure environment with the production `DATABASE_URL`:
 
    ```bash
    npm install
