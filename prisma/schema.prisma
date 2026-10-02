@@ -1,77 +1,17 @@
-generator client {
-  provider = "prisma-client-js"
-}
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "mysql" url = env("DATABASE_URL") }
 
-enum Role {
-  CUSTOMER
-  VENDOR
-  ADMIN
-}
-enum VendorType {
-  RETAILER
-  WHOLESALER
-}
-enum ProductStatus {
-  PENDING
-  ACTIVE
-  REJECTED
-  ARCHIVED
-}
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  WAITING_ON_CUSTOMER
-  RESOLVED
-  CLOSED
-}
-enum TicketPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
-enum ConversationStatus {
-  OPEN
-  CLOSED
-}
-enum MessageSender {
-  CUSTOMER
-  VENDOR
-  ADMIN
-  SYSTEM
-}
-enum OrderStatus {
-  PENDING
-  PAID
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-}
-enum WalletEntryType {
-  SALE_CREDIT
-  COMMISSION
-  WITHDRAWAL
-  REFUND
-  ADJUSTMENT
-}
-enum WithdrawalStatus {
-  PENDING
-  APPROVED
-  PAID
-  REJECTED
-}
+enum Role { CUSTOMER VENDOR ADMIN }
+enum VendorType { RETAILER WHOLESALER }
+enum ProductStatus { PENDING ACTIVE REJECTED ARCHIVED }
+enum TicketStatus { OPEN IN_PROGRESS WAITING_ON_CUSTOMER RESOLVED CLOSED }
+enum TicketPriority { LOW NORMAL HIGH URGENT }
+enum ConversationStatus { OPEN CLOSED }
+enum MessageSender { CUSTOMER VENDOR ADMIN SYSTEM }
+enum OrderStatus { PENDING PAID PROCESSING SHIPPED DELIVERED CANCELLED REFUNDED }
+enum PaymentStatus { PENDING SUCCESS FAILED REFUNDED }
+enum WalletEntryType { SALE_CREDIT COMMISSION WITHDRAWAL REFUND ADJUSTMENT }
+enum WithdrawalStatus { PENDING APPROVED PAID REJECTED }
 
 model User {
  id String @id @default(cuid())
