@@ -1,0 +1,234 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "mysql" url = env("DATABASE_URL") }
+
+enum Role { CUSTOMER VENDOR ADMIN }
+enum VendorType { RETAILER WHOLESALER }
+enum ProductStatus { PENDING ACTIVE REJECTED ARCHIVED }
+enum TicketStatus { OPEN IN_PROGRESS WAITING_ON_CUSTOMER RESOLVED CLOSED }
+enum TicketPriority { LOW NORMAL HIGH URGENT }
+enum ConversationStatus { OPEN CLOSED }
+enum MessageSender { CUSTOMER VENDOR ADMIN SYSTEM }
+enum OrderStatus { PENDING PAID PROCESSING SHIPPED DELIVERED CANCELLED REFUNDED }
+enum PaymentStatus { PENDING SUCCESS FAILED REFUNDED }
+enum WalletEntryType { SALE_CREDIT COMMISSION WITHDRAWAL REFUND ADJUSTMENT }
+enum WithdrawalStatus { PENDING APPROVED PAID REJECTED }
+
+model User {
+ id String @id @default(cuid())
+ name String
+ email String @unique
+ phone String?
+ passwordHash String
+ role Role @default(CUSTOMER)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ vendor Vendor?
+ tickets Ticket[]
+ customerOrders Order[]
+ conversations Conversation[]
+ sentMessages Message[] @relation("MessageSender")
+ ticketMessages TicketMessage[] @relation("TicketMessageSender")
+ wallet Wallet?
+ withdrawals Withdrawal[]
+ @@index([role])
+}
+model Vendor {
+ id String @id @default(cuid())
+ userId String @unique
+ businessName String
+ type VendorType @default(RETAILER)
+ description String? @db.Text
+ approved Boolean @default(false)
+ commissionPercent Decimal @default(10.00) @db.Decimal(5,2)
+ createdAt DateTime @default(now())
+ user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+ products Product[]
+ vendorOrders VendorOrder[]
+ wallet Wallet?
+ @@index([approved, type])
+}
+model Category {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ description String? @db.Text
+ createdAt DateTime @default(now())
+ products Product[]
+}
+model Product {
+ id String @id @default(cuid())
+ vendorId String
+ categoryId String
+ name String
+ slug String @unique
+ brand String?
+ sku String?
+ description String @db.Text
+ price Decimal @db.Decimal(12,2)
+ stock Int @default(0)
+ imageUrl String?
+ vehicleMakes Json?
+ vehicleModels Json?
+ vehicleYears Json?
+ minOrderQuantity Int @default(1)
+ isWholesale Boolean @default(false)
+ status ProductStatus @default(PENDING)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ vendor Vendor @relation(fields:[vendorId], references:[id], onDelete:Cascade)
+ category Category @relation(fields:[categoryId], references:[id])
+ orderItems OrderItem[]
+ @@index([categoryId, status])
+ @@index([vendorId, status])
+ @@index([isWholesale, status])
+ @@fulltext([name, brand, sku, description])
+}
+model Order {
+ id String @id @default(cuid())
+ orderNumber String @unique
+ customerId String
+ status OrderStatus @default(PENDING)
+ subtotal Decimal @db.Decimal(12,2)
+ deliveryFee Decimal @default(0) @db.Decimal(12,2)
+ total Decimal @db.Decimal(12,2)
+ currency String @default("NGN")
+ paystackReference String? @unique
+ paymentStatus PaymentStatus @default(PENDING)
+ shippingName String
+ shippingPhone String
+ shippingAddress String @db.Text
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ customer User @relation(fields:[customerId], references:[id])
+ vendorOrders VendorOrder[]
+ items OrderItem[]
+ @@index([customerId, createdAt])
+}
+model VendorOrder {
+ id String @id @default(cuid())
+ orderId String
+ vendorId String
+ subtotal Decimal @db.Decimal(12,2)
+ commission Decimal @db.Decimal(12,2)
+ vendorNet Decimal @db.Decimal(12,2)
+ status OrderStatus @default(PAID)
+ createdAt DateTime @default(now())
+ order Order @relation(fields:[orderId], references:[id], onDelete:Cascade)
+ vendor Vendor @relation(fields:[vendorId], references:[id])
+ @@unique([orderId, vendorId])
+}
+model OrderItem {
+ id String @id @default(cuid())
+ orderId String
+ productId String
+ vendorId String
+ productName String
+ unitPrice Decimal @db.Decimal(12,2)
+ quantity Int
+ lineTotal Decimal @db.Decimal(12,2)
+ order Order @relation(fields:[orderId], references:[id], onDelete:Cascade)
+ product Product @relation(fields:[productId], references:[id])
+ @@index([vendorId])
+}
+model Wallet {
+ id String @id @default(cuid())
+ userId String? @unique
+ vendorId String? @unique
+ availableBalance Decimal @default(0) @db.Decimal(14,2)
+ pendingBalance Decimal @default(0) @db.Decimal(14,2)
+ updatedAt DateTime @updatedAt
+ user User? @relation(fields:[userId], references:[id], onDelete:Cascade)
+ vendor Vendor? @relation(fields:[vendorId], references:[id], onDelete:Cascade)
+ entries WalletEntry[]
+}
+model WalletEntry {
+ id String @id @default(cuid())
+ walletId String
+ type WalletEntryType
+ amount Decimal @db.Decimal(14,2)
+ description String
+ reference String? @unique
+ createdAt DateTime @default(now())
+ wallet Wallet @relation(fields:[walletId], references:[id], onDelete:Cascade)
+ @@index([walletId, createdAt])
+}
+model Withdrawal {
+ id String @id @default(cuid())
+ userId String
+ amount Decimal @db.Decimal(14,2)
+ bankName String
+ accountName String
+ accountNumber String
+ status WithdrawalStatus @default(PENDING)
+ adminNote String? @db.Text
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ user User @relation(fields:[userId], references:[id])
+ @@index([status, createdAt])
+}
+model Ticket {
+ id String @id @default(cuid())
+ ticketNumber String @unique
+ userId String
+ subject String
+ category String
+ description String @db.Text
+ status TicketStatus @default(OPEN)
+ priority TicketPriority @default(NORMAL)
+ assignedAdminId String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ user User @relation(fields:[userId], references:[id])
+ messages TicketMessage[]
+ @@index([userId, status])
+ @@index([status, priority])
+}
+model TicketMessage {
+ id String @id @default(cuid())
+ ticketId String
+ senderId String
+ body String @db.Text
+ isInternalNote Boolean @default(false)
+ createdAt DateTime @default(now())
+ ticket Ticket @relation(fields:[ticketId], references:[id], onDelete:Cascade)
+ sender User @relation("TicketMessageSender", fields:[senderId], references:[id])
+ @@index([ticketId, createdAt])
+}
+model Conversation {
+ id String @id @default(cuid())
+ userId String
+ subject String @default("Support chat")
+ status ConversationStatus @default(OPEN)
+ assignedAdminId String?
+ lastMessageAt DateTime @default(now())
+ createdAt DateTime @default(now())
+ user User @relation(fields:[userId], references:[id])
+ messages Message[]
+ @@index([status, lastMessageAt])
+}
+model Message {
+ id String @id @default(cuid())
+ conversationId String
+ senderId String
+ senderRole MessageSender
+ body String @db.Text
+ createdAt DateTime @default(now())
+ conversation Conversation @relation(fields:[conversationId], references:[id], onDelete:Cascade)
+ sender User @relation("MessageSender", fields:[senderId], references:[id])
+ @@index([conversationId, createdAt])
+}
+model SiteSetting {
+ key String @id
+ value String @db.Text
+ updatedAt DateTime @updatedAt
+}
+model PlatformLedger {
+ id String @id @default(cuid())
+ orderId String
+ vendorId String
+ amount Decimal @db.Decimal(14,2)
+ description String
+ createdAt DateTime @default(now())
+ @@unique([orderId, vendorId])
+ @@index([createdAt])
+}

@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';import {db} from '@/lib/db';import {requireRole,currentVendor} from '@/lib/auth';
+export async function GET(){try{const u=await requireRole('VENDOR');const v=await currentVendor(u.id);if(!v)return NextResponse.json({error:'Vendor profile not found.'},{status:404});const wallet=await db.wallet.findUnique({where:{vendorId:v.id},include:{entries:{orderBy:{createdAt:'desc'},take:50}}});return NextResponse.json({wallet});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Failed'},{status:401});}}
