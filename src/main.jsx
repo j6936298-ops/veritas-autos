@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../styles.css';
 import './react-bridge.css';
-import './legacy.js';
+import { initializeVeritas } from './legacy.js';
 
 function App() {
   useEffect(() => {
     // The supplied original site script uses document-level handlers and is kept intact.
-    if (typeof window.initializeVeritas === 'function') window.initializeVeritas();
+    initializeVeritas();
   }, []);
   return <div id="veritas-original" dangerouslySetInnerHTML={{ __html: ORIGINAL_MARKUP }} />;
 }

@@ -220,11 +220,14 @@ function findCompatibleParts(){
 function toggleMenu(){document.getElementById("mobileNav").classList.toggle("open")}
 function goSearch(){document.getElementById("search").scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>document.getElementById("q").focus(),400)}
 function searchNow(){const q=document.getElementById("q").value.trim();toast(q?`Searching the marketplace for ${q}.`:"Enter a part, brand or part number.")}
-function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove("show"),2600)}
+function toast(msg){const t=document.getElementById("toast");if(!t)return;t.textContent=msg;t.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove("show"),2600)}
 
-}
-window.initializeVeritas = initializeVeritas;
+// Expose handlers only after the React-rendered markup exists and the functions are in scope.
 window.toggleMenu = toggleMenu;
 window.goSearch = goSearch;
 window.searchNow = searchNow;
 window.findCompatibleParts = findCompatibleParts;
+}
+
+// This assignment is intentionally the only module-level browser global.
+window.initializeVeritas = initializeVeritas;
